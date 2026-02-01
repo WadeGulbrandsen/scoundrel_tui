@@ -48,7 +48,7 @@ func (sg *Game) BuildRoom() {
 }
 
 func (sg *Game) DoAction(a Action) error {
-	return a.callback(sg, a.RoomIdx)
+	return a.callback(sg, a.CardIdx)
 }
 
 func (sg *Game) GetActions() []Action {
@@ -93,33 +93,33 @@ func (sg *Game) GetActions() []Action {
 			if sg.HasDrankPotion {
 				actions = append(actions, Action{
 					Description: fmt.Sprintf("Discard %s potion", card),
-					RoomIdx:     i,
+					CardIdx:     i,
 					callback:    discard_potion,
 				})
 			} else {
 				actions = append(actions, Action{
 					Description: fmt.Sprintf("Drink %s potion", card),
-					RoomIdx:     i,
+					CardIdx:     i,
 					callback:    drink_potion,
 				})
 			}
 		case deck.Diamonds:
 			actions = append(actions, Action{
 				Description: fmt.Sprintf("Take %s weapon", card),
-				RoomIdx:     i,
+				CardIdx:     i,
 				callback:    take_weapon,
 			})
 		default:
 			if card.Value() < max_weapon {
 				actions = append(actions, Action{
 					Description: fmt.Sprintf("Attack %s with your weapon", card),
-					RoomIdx:     i,
+					CardIdx:     i,
 					callback:    fight_monster_with_weapon,
 				})
 			}
 			actions = append(actions, Action{
 				Description: fmt.Sprintf("Attack %s barehanded", card),
-				RoomIdx:     i,
+				CardIdx:     i,
 				callback:    fight_monster_barehanded,
 			})
 		}

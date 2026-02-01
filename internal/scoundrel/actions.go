@@ -8,7 +8,7 @@ import (
 
 type Action struct {
 	Description string
-	RoomIdx     int
+	CardIdx     int
 	callback    func(*Game, int) error
 }
 
@@ -35,6 +35,7 @@ func discard_potion(game *Game, i int) error {
 	}
 	game.Discard.AddTop(card)
 	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.CanRun = false
 	return nil
 }
 
@@ -50,6 +51,7 @@ func drink_potion(game *Game, i int) error {
 	game.HasDrankPotion = true
 	game.Discard.AddTop(card)
 	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.CanRun = false
 	return nil
 }
 
@@ -68,6 +70,7 @@ func take_weapon(game *Game, i int) error {
 	}
 	game.Weapon = &Weapon{Weapon: card, Killed: deck.Empty()}
 	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.CanRun = false
 	return nil
 }
 
@@ -82,6 +85,7 @@ func fight_monster_barehanded(game *Game, i int) error {
 	game.Health -= card.Value()
 	game.Discard.AddTop(card)
 	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.CanRun = false
 	return nil
 }
 
@@ -102,5 +106,6 @@ func fight_monster_with_weapon(game *Game, i int) error {
 	game.Health -= max(0, card.Value()-game.Weapon.Weapon.Value())
 	game.Weapon.Killed.AddTop(card)
 	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.CanRun = false
 	return nil
 }

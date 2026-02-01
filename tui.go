@@ -54,8 +54,6 @@ func (m model) View() string {
 
 	s := "SCOUNDREL\n\n"
 
-	s += fmt.Sprintf("Dungeon: %d\n", m.game.Dungeon.Length())
-	s += fmt.Sprintf("Discard: %d\n", m.game.Discard.Length())
 	s += fmt.Sprintf("Health: %d HP\n", m.game.Health)
 
 	if m.game.Weapon == nil {
@@ -71,9 +69,9 @@ func (m model) View() string {
 	s += fmt.Sprintf("Room: %v\n", m.game.Room)
 	if m.game.GameOver {
 		if m.game.Health > 0 {
-			s += "You won!\n"
+			s += "You won! "
 		} else {
-			s += "You died!\n"
+			s += "You died! "
 		}
 		s += fmt.Sprintf("Score: %d\n\n", m.game.Score())
 	} else {
@@ -85,6 +83,9 @@ func (m model) View() string {
 			cursor = ">"
 		}
 		s += fmt.Sprintf("%s %s\n", cursor, action.Description)
+	}
+	for i := len(actions); i < 10; i++ {
+		s += "\n"
 	}
 	s += "\nPress q to quit.\n"
 	if m.err != nil {
