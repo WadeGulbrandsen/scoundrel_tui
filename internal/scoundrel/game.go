@@ -11,75 +11,102 @@ type Game struct {
 	Weapon         *Weapon
 	CanRun         bool
 	Dungeon        deck.Deck
-	Room           []deck.Card
+	Room           [4]*deck.Card
 	Discard        deck.Deck
 	HasDrankPotion bool
 	GameOver       bool
 }
 
-func (sg *Game) Score() int {
+func (game *Game) RemainingCardsInRoom() int {
+	sum := 0
+	for _, card := range game.Room {
+		if card != nil {
+			sum += 1
+		}
+	}
+	return sum
+}
+
+func (game *Game) Score() int {
+	remainingCards := []deck.Card{}
+	for _, card := range game.Room {
+		if card != nil {
+			remainingCards = append(remainingCards, *card)
+		}
+	}
 	switch {
-	case !sg.GameOver:
+	case !game.GameOver:
 		return 0
-	case sg.Health <= 0:
+	case game.Health <= 0:
 		score := 0
-		for _, card := range sg.Dungeon.Cards {
+		for _, card := range game.Dungeon.Cards {
 			if card.Color == deck.Black {
 				score -= card.Value()
 			}
 		}
 		return score
-	case sg.Health == 20 && len(sg.Room) == 1 && sg.Room[0].Suit == deck.Hearts:
-		return 20 + sg.Room[0].Value()
+	case game.Health == 20 &&
+		len(remainingCards) == 1 &&
+		remainingCards[0].Suit == deck.Hearts:
+		return 20 + game.Room[0].Value()
 	default:
-		return sg.Health
+		return game.Health
 	}
 }
 
-func (sg *Game) BuildRoom() {
-	for i := len(sg.Room); i < 4; i++ {
-		card, err := sg.Dungeon.Draw()
+func (game *Game) BuildRoom() {
+	for i, card_ptr := range game.Room {
+		if card_ptr != nil {
+			// This slot in the room alread has a card
+			continue
+		}
+		card, err := game.Dungeon.Draw()
 		if err != nil {
 			// Deck is empty
 			break
 		}
-		sg.Room = append(sg.Room, card)
+		game.Room[i] = &card
 	}
 }
 
-func (sg *Game) DoAction(a Action) error {
-	return a.callback(sg, a.CardIdx)
+func (game *Game) DoAction(a Action) error {
+	return a.callback(game, a.CardIdx)
 }
 
-func (sg *Game) GetActions() []Action {
-	if sg.Health <= 0 {
+func (game *Game) GetActions() []Action {
+	if game.Health <= 0 {
 		// Player died!
-		sg.GameOver = true
+		game.GameOver = true
 		return []Action{{
 			Description: "Play again",
-			callback:    play_again,
+			CardIdx:     -1,
+			Effect:      PlayAgain,
+			callback:    playAgain,
 		}}
 	}
 
-	if len(sg.Room) <= 1 {
-		// Current turn complet
-		sg.HasDrankPotion = false
-		sg.CanRun = true
-		sg.BuildRoom()
-	}
+	cards_in_room := game.RemainingCardsInRoom()
 
-	if len(sg.Room) <= 1 && sg.Dungeon.Length() == 0 {
+	if cards_in_room <= 1 && game.Dungeon.Length() == 0 {
 		// Player won!
-		sg.GameOver = true
+		game.GameOver = true
 		return []Action{{
 			Description: "Play again",
-			callback:    play_again,
+			CardIdx:     -1,
+			callback:    playAgain,
 		}}
+	}
+
+	if cards_in_room <= 1 {
+		// Current turn complet
+		game.HasDrankPotion = false
+		game.CanRun = true
+		game.BuildRoom()
 	}
 
 	max_weapon := 0
-	if sg.Weapon != nil {
-		if last, err := sg.Weapon.Killed.Peek(); err == nil {
+	if game.Weapon != nil {
+		if last, err := game.Weapon.Killed.Peek(); err == nil {
 			max_weapon = last.Value()
 		} else {
 			max_weapon = 99
@@ -87,47 +114,57 @@ func (sg *Game) GetActions() []Action {
 	}
 
 	actions := []Action{}
-	for i, card := range sg.Room {
+	for i, card := range game.Room {
+		if card == nil {
+			// No card in this slot of the room
+			continue
+		}
 		switch card.Suit {
 		case deck.Hearts:
-			if sg.HasDrankPotion {
+			if game.HasDrankPotion {
 				actions = append(actions, Action{
 					Description: fmt.Sprintf("Discard %s potion", card),
 					CardIdx:     i,
-					callback:    discard_potion,
+					Effect:      DiscardPotion,
+					callback:    discardPotion,
 				})
 			} else {
 				actions = append(actions, Action{
 					Description: fmt.Sprintf("Drink %s potion", card),
 					CardIdx:     i,
-					callback:    drink_potion,
+					Effect:      DrinkPotion,
+					callback:    drinkPotion,
 				})
 			}
 		case deck.Diamonds:
 			actions = append(actions, Action{
 				Description: fmt.Sprintf("Take %s weapon", card),
 				CardIdx:     i,
-				callback:    take_weapon,
+				Effect:      TakeWeapon,
+				callback:    takeWeapon,
 			})
 		default:
 			if card.Value() < max_weapon {
 				actions = append(actions, Action{
 					Description: fmt.Sprintf("Attack %s with your weapon", card),
 					CardIdx:     i,
-					callback:    fight_monster_with_weapon,
+					Effect:      AttackWithWeapon,
+					callback:    fightMonsterWithWeapon,
 				})
 			}
 			actions = append(actions, Action{
 				Description: fmt.Sprintf("Attack %s barehanded", card),
 				CardIdx:     i,
-				callback:    fight_monster_barehanded,
+				Effect:      AttackBarehanded,
+				callback:    fightMonsterBarehanded,
 			})
 		}
 	}
-	if sg.CanRun {
+	if game.CanRun {
 		actions = append(actions, Action{
 			Description: "Run away",
-			callback:    run_away,
+			CardIdx:     -1,
+			callback:    runAway,
 		})
 	}
 	return actions
@@ -152,8 +189,8 @@ func New() Game {
 	game := Game{
 		Health:   20,
 		CanRun:   true,
-		Dungeon:  deck.Deck{Cards: cards},
-		Discard:  deck.Empty(),
+		Dungeon:  deck.Deck{Cards: cards, Name: "Dungeon"},
+		Discard:  deck.Empty("Discard"),
 		GameOver: false,
 	}
 	game.Dungeon.Shuffle()

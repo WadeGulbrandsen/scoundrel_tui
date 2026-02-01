@@ -9,57 +9,75 @@ import (
 type Action struct {
 	Description string
 	CardIdx     int
+	Effect      Effect
 	callback    func(*Game, int) error
 }
 
-func play_again(game *Game, _ int) error {
+type Effect int
+
+const (
+	PlayAgain = iota + 1
+	DiscardPotion
+	DrinkPotion
+	TakeWeapon
+	AttackWithWeapon
+	AttackBarehanded
+)
+
+func playAgain(game *Game, _ int) error {
 	*game = New()
 	return nil
 }
 
-func run_away(game *Game, _ int) error {
-	game.Discard.AddBottom(game.Room...)
-	game.Room = []deck.Card{}
+func runAway(game *Game, _ int) error {
+	cards := []deck.Card{}
+	for _, card := range game.Room {
+		if card != nil {
+			cards = append(cards, *card)
+		}
+	}
+	game.Discard.AddBottom(cards...)
+	game.Room = [4]*deck.Card{}
 	game.BuildRoom()
 	game.CanRun = false
 	return nil
 }
 
-func discard_potion(game *Game, i int) error {
-	if i >= len(game.Room) {
+func discardPotion(game *Game, i int) error {
+	if game.Room[i] == nil {
 		return fmt.Errorf("No card at Room[%d]", i)
 	}
-	card := game.Room[i]
+	card := *game.Room[i]
 	if card.Suit != deck.Hearts {
 		return fmt.Errorf("Card at Room[%d] is not a potion", i)
 	}
 	game.Discard.AddTop(card)
-	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.Room[i] = nil
 	game.CanRun = false
 	return nil
 }
 
-func drink_potion(game *Game, i int) error {
-	if i >= len(game.Room) {
+func drinkPotion(game *Game, i int) error {
+	if game.Room[i] == nil {
 		return fmt.Errorf("No card at Room[%d]", i)
 	}
-	card := game.Room[i]
+	card := *game.Room[i]
 	if card.Suit != deck.Hearts {
 		return fmt.Errorf("Card at Room[%d] is not a potion", i)
 	}
 	game.Health = min(game.Health+card.Value(), 20)
 	game.HasDrankPotion = true
 	game.Discard.AddTop(card)
-	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.Room[i] = nil
 	game.CanRun = false
 	return nil
 }
 
-func take_weapon(game *Game, i int) error {
-	if i >= len(game.Room) {
+func takeWeapon(game *Game, i int) error {
+	if game.Room[i] == nil {
 		return fmt.Errorf("No card at Room[%d]", i)
 	}
-	card := game.Room[i]
+	card := *game.Room[i]
 	if card.Suit != deck.Diamonds {
 		return fmt.Errorf("Card at Room[%d] is not a weapon", i)
 	}
@@ -68,32 +86,32 @@ func take_weapon(game *Game, i int) error {
 		game.Discard.AddTop(game.Weapon.Killed.Cards...)
 		game.Weapon = nil
 	}
-	game.Weapon = &Weapon{Weapon: card, Killed: deck.Empty()}
-	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.Weapon = &Weapon{Weapon: card, Killed: deck.Empty("Killed")}
+	game.Room[i] = nil
 	game.CanRun = false
 	return nil
 }
 
-func fight_monster_barehanded(game *Game, i int) error {
-	if i >= len(game.Room) {
+func fightMonsterBarehanded(game *Game, i int) error {
+	if game.Room[i] == nil {
 		return fmt.Errorf("No card at Room[%d]", i)
 	}
-	card := game.Room[i]
+	card := *game.Room[i]
 	if card.Color != deck.Black {
 		return fmt.Errorf("Card at Room[%d] is not a monster", i)
 	}
 	game.Health -= card.Value()
 	game.Discard.AddTop(card)
-	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.Room[i] = nil
 	game.CanRun = false
 	return nil
 }
 
-func fight_monster_with_weapon(game *Game, i int) error {
-	if i >= len(game.Room) {
+func fightMonsterWithWeapon(game *Game, i int) error {
+	if game.Room[i] == nil {
 		return fmt.Errorf("No card at Room[%d]", i)
 	}
-	card := game.Room[i]
+	card := *game.Room[i]
 	if card.Color != deck.Black {
 		return fmt.Errorf("Card at Room[%d] is not a monster", i)
 	}
@@ -105,7 +123,7 @@ func fight_monster_with_weapon(game *Game, i int) error {
 	}
 	game.Health -= max(0, card.Value()-game.Weapon.Weapon.Value())
 	game.Weapon.Killed.AddTop(card)
-	game.Room = append(game.Room[:i], game.Room[i+1:]...)
+	game.Room[i] = nil
 	game.CanRun = false
 	return nil
 }

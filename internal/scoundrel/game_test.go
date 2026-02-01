@@ -14,7 +14,7 @@ func TestScore(t *testing.T) {
 		{
 			input: Game{
 				Health:   20,
-				Room:     []deck.Card{{Rank: deck.Five, Suit: deck.Hearts, Color: deck.Red}},
+				Room:     [4]*deck.Card{{Rank: deck.Five, Suit: deck.Hearts, Color: deck.Red}},
 				GameOver: true,
 			},
 			expected: 25,
@@ -22,7 +22,7 @@ func TestScore(t *testing.T) {
 		{
 			input: Game{
 				Health:   20,
-				Room:     []deck.Card{{Rank: deck.Five, Suit: deck.Hearts, Color: deck.Red}},
+				Room:     [4]*deck.Card{{Rank: deck.Five, Suit: deck.Hearts, Color: deck.Red}},
 				GameOver: false,
 			},
 			expected: 0,
@@ -30,7 +30,7 @@ func TestScore(t *testing.T) {
 		{
 			input: Game{
 				Health:   2,
-				Room:     []deck.Card{{Rank: deck.Five, Suit: deck.Hearts, Color: deck.Red}},
+				Room:     [4]*deck.Card{{Rank: deck.Five, Suit: deck.Hearts, Color: deck.Red}},
 				GameOver: true,
 			},
 			expected: 2,
@@ -38,7 +38,7 @@ func TestScore(t *testing.T) {
 		{
 			input: Game{
 				Health:   20,
-				Room:     []deck.Card{{Rank: deck.Five, Suit: deck.Clubs, Color: deck.Black}},
+				Room:     [4]*deck.Card{{Rank: deck.Five, Suit: deck.Clubs, Color: deck.Black}},
 				GameOver: true,
 			},
 			expected: 20,
@@ -52,7 +52,7 @@ func TestScore(t *testing.T) {
 					{Rank: deck.Ten, Suit: deck.Spades, Color: deck.Black, AceHigh: true},
 					{Rank: deck.Six, Suit: deck.Clubs, Color: deck.Black, AceHigh: true},
 				}},
-				Room:     []deck.Card{{Rank: deck.Five, Suit: deck.Clubs, Color: deck.Black}},
+				Room:     [4]*deck.Card{{Rank: deck.Five, Suit: deck.Clubs, Color: deck.Black}},
 				GameOver: true,
 			},
 			expected: -30,
@@ -66,7 +66,7 @@ func TestScore(t *testing.T) {
 					{Rank: deck.Ten, Suit: deck.Spades, Color: deck.Black, AceHigh: true},
 					{Rank: deck.Six, Suit: deck.Clubs, Color: deck.Black, AceHigh: true},
 				}},
-				Room:     []deck.Card{{Rank: deck.Five, Suit: deck.Clubs, Color: deck.Black}},
+				Room:     [4]*deck.Card{{Rank: deck.Five, Suit: deck.Clubs, Color: deck.Black}},
 				GameOver: true,
 			},
 			expected: -30,
@@ -74,8 +74,8 @@ func TestScore(t *testing.T) {
 		{
 			input: Game{
 				Health:   0,
-				Dungeon:  deck.Empty(),
-				Room:     []deck.Card{{Rank: deck.Five, Suit: deck.Clubs, Color: deck.Black}},
+				Dungeon:  deck.Empty(""),
+				Room:     [4]*deck.Card{{Rank: deck.Five, Suit: deck.Clubs, Color: deck.Black}},
 				GameOver: true,
 			},
 			expected: 0,

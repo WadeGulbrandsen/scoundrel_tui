@@ -4,6 +4,8 @@ go 1.25.6
 
 require github.com/charmbracelet/bubbletea v1.3.10
 
+require github.com/charmbracelet/harmonica v0.2.0 // indirect
+
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/bubbles v0.21.0

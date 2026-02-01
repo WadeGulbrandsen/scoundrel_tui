@@ -7,6 +7,7 @@ import (
 
 type Deck struct {
 	Cards []Card
+	Name  string
 }
 
 func (d *Deck) Length() int {
@@ -50,7 +51,7 @@ func (d *Deck) Fronts() []rune {
 	return cardFronts
 }
 
-func New() Deck {
+func New(name string) Deck {
 	cards := make([]Card, 0, 52)
 	for suit := Spades; suit <= Clubs; suit++ {
 		for rank := Ace; rank <= King; rank++ {
@@ -61,11 +62,11 @@ func New() Deck {
 			})
 		}
 	}
-	return Deck{Cards: cards}
+	return Deck{Cards: cards, Name: name}
 }
 
-func Empty() Deck {
-	return Deck{Cards: []Card{}}
+func Empty(name string) Deck {
+	return Deck{Cards: []Card{}, Name: name}
 }
 
 func (d *Deck) Shuffle() {

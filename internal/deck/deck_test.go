@@ -3,7 +3,7 @@ package deck
 import "testing"
 
 func TestDeckSuffle(t *testing.T) {
-	deck := New()
+	deck := New("")
 	original := deck.String()
 	deck.Shuffle()
 	shuffled := deck.String()

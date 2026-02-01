@@ -1,6 +1,8 @@
 package deck
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const CardBack = rune(0x1F0A0)
 
