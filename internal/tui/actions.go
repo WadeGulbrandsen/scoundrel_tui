@@ -1,6 +1,9 @@
 package tui
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func renderActions(m model) string {
 	actions := m.game.GetActions()
@@ -12,7 +15,8 @@ func renderActions(m model) string {
 		}
 		s += fmt.Sprintf("%s %s\n", cursor, action.Description)
 	}
-	return s
+	height := 9 - strings.Count(s, "\n")
+	return s + strings.Repeat("\n", height)
 }
 
 // type actions_for_card struct {

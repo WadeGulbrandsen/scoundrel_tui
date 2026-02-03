@@ -44,8 +44,8 @@ func renderGame(m model) string {
 	middle := lipgloss.JoinHorizontal(lipgloss.Top, weapon, room)
 	body := lipgloss.JoinVertical(lipgloss.Center, header, middle)
 	helpView := m.help.View(m.keys)
-	height := 40 - strings.Count(body, "\n") - strings.Count(helpView, "\n")
-	game := "\n" + body + strings.Repeat("\n", height) + helpView
+	height := 34 - strings.Count(body, "\n") - strings.Count(helpView, "\n")
+	game := body + strings.Repeat("\n", height) + helpView
 	return gameStyle.Render(game)
 }
 
